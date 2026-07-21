@@ -44,7 +44,7 @@ function showDetailsView(bookId) {
     const chapterList = document.getElementById('chapter-list');
     chapterList.innerHTML = '';
     
-    const isOfflineMode = document.getElementById('offline-actions') && document.getElementById('offline-actions').style.display === 'flex';
+    const isOfflineMode = document.getElementById('offline-actions') && !document.getElementById('offline-actions').classList.contains('hidden');
 
     book.chapters.forEach((ch, index) => {
         const li = document.createElement('li');
