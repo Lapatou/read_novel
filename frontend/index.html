@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelBin TTS Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a202c">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Home View -->
+        <div id="home-view" class="glass-panel">
+            <header style="margin-bottom: 2rem;">
+                <h1>Novel Kütüphanesi</h1>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Add a novel from NovelBin to start reading!</p>
+            </header>
+            
+            <div class="add-book-section">
+                <input type="url" id="book-url-input" placeholder="NovelBin / NovelArrow Main Page URL">
+                <button id="add-book-btn" class="primary-btn">Add Book</button>
+                <button id="check-updates-btn" class="secondary-btn" style="display: flex; align-items: center; gap: 6px;" title="Check all books for new chapters">
+                    🔄 Yeni Bölümleri Tara
+                </button>
+            </div>
+            
+            <div id="book-error-message" class="error-msg hidden" style="margin-bottom: 15px;"></div>
+            
+            <div id="book-grid" class="book-grid">
+                <!-- Books will be loaded here dynamically -->
+            </div>
+        </div>
+
+        <!-- Book Details View -->
+        <div id="book-details-view" class="hidden glass-panel" style="display: flex; flex-direction: column; height: 100%;">
+            <header style="margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem; width: 100%;">
+                <div style="display: flex; justify-content: flex-start; align-items: center; width: 100%;">
+                    <button id="details-back-btn" class="primary-btn" style="padding: 0.6rem 1.2rem; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                        🏠 Ana Sayfaya Dön
+                    </button>
+                </div>
+                <div>
+                    <h1 id="details-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; line-height: 1.3;">Book Title</h1>
+                    <div id="details-progress" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Downloaded: 0 / 0</div>
+                    <button id="continue-reading-btn" class="primary-btn" style="width: 100%; padding: 0.8rem; font-size: 1.05rem;">Continue Reading</button>
+                    <button id="download-offline-btn" class="secondary-btn" style="width: 100%; padding: 0.8rem; font-size: 1.05rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 8px;">📥 Çevrimdışı İndir</button>
+                    <div id="offline-progress" style="display: none; margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem; text-align: center;">İndiriliyor... %0</div>
+                </div>
+            </header>
+
+            <h3 style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border);">Chapters</h3>
+            <div id="chapter-list-container" style="flex: 1; overflow-y: auto;">
+                <ul id="chapter-list" class="chapter-list">
+                    <!-- Chapters populated dynamically -->
+                </ul>
+            </div>
+        </div>
+
+        <!-- Reader View -->
+        <div id="reader-view" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="glass-panel">
+                <header style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; padding-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button id="reader-back-btn" class="secondary-btn" style="padding: 0.5rem 0.8rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px;">
+                            📚 Bölümler
+                        </button>
+                        <button id="reader-home-btn" class="secondary-btn" style="padding: 0.5rem 0.8rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px;">
+                            🏠 Ana Sayfa
+                        </button>
+                    </div>
+                    
+                    <div style="position: relative;">
+                        <button id="settings-toggle-btn" class="secondary-btn" style="padding: 0.5rem 0.8rem; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                            ⚙️ Ayarlar
+                        </button>
+                        
+                        <!-- Settings Dropdown -->
+                        <div id="settings-dropdown" class="hidden glass-panel" style="position: absolute; right: 0; top: 120%; width: 220px; z-index: 100; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background: #1e293b; border: 1px solid rgba(255,255,255,0.2);">
+                            <button id="settings-home-btn" class="secondary-btn" style="width: 100%; justify-content: flex-start; border: none; text-align: left; padding: 0.6rem;">🏠 Ana Sayfa</button>
+                            <button id="settings-chapters-btn" class="secondary-btn" style="width: 100%; justify-content: flex-start; border: none; text-align: left; padding: 0.6rem;">📚 Bölümler</button>
+                            <button id="settings-sync-btn" class="secondary-btn" style="width: 100%; justify-content: flex-start; border: none; text-align: left; padding: 0.6rem;">🔄 Bölümleri Güncelle</button>
+                            <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 0.25rem 0;"></div>
+                            <button id="settings-regenerate-btn" class="secondary-btn" style="width: 100%; justify-content: flex-start; border: none; text-align: left; color: #f87171; padding: 0.6rem;">🔄 Ses Yeniden Üret</button>
+                        </div>
+                    </div>
+                </header>
+                <div id="error-message" class="error-msg hidden" style="margin-top: 10px;"></div>
+            </div>
+
+            <main class="reading-pane" id="reading-pane">
+                <h2 id="chapter-title">Welcome</h2>
+                <div id="chapter-content">
+                    <p>Load a chapter to start reading and listening.</p>
+                </div>
+            </main>
+
+            <footer class="glass-panel controls" style="display: flex; flex-direction: column; gap: 15px; padding: 15px;">
+                <!-- Top Row: Status & Speed -->
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="audio-status" style="display: flex; align-items: center; gap: 10px;">
+                        <div id="spinner" class="loading-spinner hidden"></div>
+                        <span id="status-text" style="font-size: 0.9rem; color: var(--text-muted);">Idle</span>
+                    </div>
+                    <select id="speed-select" class="speed-control">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2.0">2.0x</option>
+                    </select>
+                </div>
+                
+                <!-- Middle Row: Progress Bar -->
+                <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <span id="time-current" style="font-size: 0.8rem; color: var(--text-muted); min-width: 35px; text-align: right;">0:00</span>
+                    <input type="range" id="audio-progress" min="0" max="100" value="0" disabled style="flex: 1; cursor: pointer; accent-color: var(--primary);">
+                    <span id="time-total" style="font-size: 0.8rem; color: var(--text-muted); min-width: 35px;">0:00</span>
+                </div>
+                
+                <!-- Bottom Row: Playback Controls -->
+                <div class="control-buttons" style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%;">
+                    <button id="prev-btn" class="secondary-btn" disabled style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">← Prev</button>
+                    
+                    <button id="rewind-btn" class="icon-btn" disabled style="width: 40px; height: 40px; background: transparent; color: var(--text-main);">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px;"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+                    </button>
+                    
+                    <button id="play-pause-btn" class="icon-btn" disabled style="width: 60px; height: 60px;">
+                        <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor" style="width: 30px; height: 30px;"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pause-icon" class="hidden" viewBox="0 0 24 24" fill="currentColor" style="width: 30px; height: 30px;"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    
+                    <button id="forward-btn" class="icon-btn" disabled style="width: 40px; height: 40px; background: transparent; color: var(--text-main);">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 24px; height: 24px;"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+                    </button>
+                    
+                    <button id="next-btn" class="secondary-btn" disabled style="padding: 0.5rem 0.8rem; font-size: 0.85rem;">Next →</button>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <script src="app.js?v=11"></script>
+</body>
+</html>

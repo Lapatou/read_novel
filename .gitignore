@@ -1,0 +1,12 @@
+# Caches and DBs
+tts_cache/
+*.db
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment
+.env

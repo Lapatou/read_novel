@@ -1,0 +1,16 @@
+{
+  "name": "EdgeTTS Novel Reader",
+  "short_name": "NovelReader",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a202c",
+  "theme_color": "#2b6cb0",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
