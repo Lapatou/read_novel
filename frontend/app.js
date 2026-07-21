@@ -68,15 +68,23 @@ function showDetailsView(bookId) {
             actionEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
             actionEl.title = "Çevrimdışı Hazır";
         } else if (isOfflineMode) {
-            // Show checkbox ONLY in offline mode if not downloaded
-            actionEl = document.createElement('input');
-            actionEl.type = 'checkbox';
-            actionEl.className = 'offline-checkbox';
-            actionEl.dataset.url = ch.url;
-            actionEl.style.width = '20px';
-            actionEl.style.height = '20px';
-            actionEl.style.cursor = 'pointer';
-            actionEl.style.accentColor = 'var(--primary)'; // Make native checkbox match theme
+            // Show custom styled checkbox ONLY in offline mode if not downloaded
+            actionEl = document.createElement('label');
+            actionEl.className = 'custom-checkbox-wrapper';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'offline-checkbox';
+            checkbox.dataset.url = ch.url;
+            
+            const bg = document.createElement('div');
+            bg.className = 'custom-checkbox-bg';
+            bg.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+            
+            actionEl.appendChild(checkbox);
+            actionEl.appendChild(bg);
+            
+            actionEl.checkboxInput = checkbox;
         }
         
         if (actionEl) {
@@ -86,10 +94,10 @@ function showDetailsView(bookId) {
         
         if (isOfflineMode) {
             // In selection mode, clicking the row toggles the checkbox
-            if (actionEl && actionEl.type === 'checkbox') {
+            if (actionEl && actionEl.checkboxInput) {
                 li.addEventListener('click', (e) => {
-                    if (e.target !== actionEl) {
-                        actionEl.checked = !actionEl.checked;
+                    if (!actionEl.contains(e.target)) {
+                        actionEl.checkboxInput.checked = !actionEl.checkboxInput.checked;
                     }
                 });
             }
@@ -789,13 +797,13 @@ if (enableOfflineBtn) {
     enableOfflineBtn.addEventListener('click', () => {
         enableOfflineBtn.classList.add('hidden');
         offlineActions.classList.remove('hidden');
-        showBookDetails(activeBookId); // Re-render list with checkboxes
+        showDetailsView(activeBookId); // Re-render list with checkboxes
     });
     
     offlineCancel.addEventListener('click', () => {
         offlineActions.classList.add('hidden');
         enableOfflineBtn.classList.remove('hidden');
-        showBookDetails(activeBookId); // Re-render list without checkboxes
+        showDetailsView(activeBookId); // Re-render list without checkboxes
     });
     
     offlineSelectAll.addEventListener('click', () => {
@@ -843,7 +851,7 @@ if (enableOfflineBtn) {
         setTimeout(() => {
             offlineProgress.classList.add('hidden');
             enableOfflineBtn.classList.remove('hidden');
-            showBookDetails(activeBookId); // reset view
+            showDetailsView(activeBookId); // reset view
         }, 3000);
     });
 }
