@@ -50,39 +50,54 @@ function showDetailsView(bookId) {
         const li = document.createElement('li');
         li.className = 'chapter-item';
         
+        // Base layout for all items to properly align icons and text
+        li.style.display = 'flex';
+        li.style.alignItems = 'center';
+        li.style.gap = '10px';
+        
+        const label = document.createElement('span');
+        label.innerText = `${index + 1}. ${ch.title}`;
+        label.style.flex = '1';
+        label.style.cursor = 'pointer';
+
+        let actionEl = null;
+
+        if (ch.downloaded) {
+            // Show green checkmark for downloaded chapters
+            actionEl = document.createElement('div');
+            actionEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; display: block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+            actionEl.title = "Çevrimdışı Hazır";
+        } else if (isOfflineMode) {
+            // Show checkbox ONLY in offline mode if not downloaded
+            actionEl = document.createElement('input');
+            actionEl.type = 'checkbox';
+            actionEl.className = 'offline-checkbox';
+            actionEl.dataset.url = ch.url;
+            actionEl.style.width = '20px';
+            actionEl.style.height = '20px';
+            actionEl.style.cursor = 'pointer';
+            actionEl.style.accentColor = 'var(--primary)'; // Make native checkbox match theme
+        }
+        
+        if (actionEl) {
+            li.appendChild(actionEl);
+        }
+        li.appendChild(label);
+        
         if (isOfflineMode) {
-            li.style.display = 'flex';
-            li.style.alignItems = 'center';
-            li.style.gap = '10px';
-            li.style.padding = '10px';
-            
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'offline-checkbox';
-            checkbox.dataset.url = ch.url;
-            checkbox.style.width = '18px';
-            checkbox.style.height = '18px';
-            checkbox.style.cursor = 'pointer';
-            
-            const label = document.createElement('span');
-            label.innerText = `${index + 1}. ${ch.title}`;
-            label.style.flex = '1';
-            label.style.cursor = 'pointer';
-            
-            li.appendChild(checkbox);
-            li.appendChild(label);
-            
-            // Clicking the row checks the box in offline mode
-            li.addEventListener('click', (e) => {
-                if (e.target !== checkbox) {
-                    checkbox.checked = !checkbox.checked;
-                }
-            });
+            // In selection mode, clicking the row toggles the checkbox
+            if (actionEl && actionEl.type === 'checkbox') {
+                li.addEventListener('click', (e) => {
+                    if (e.target !== actionEl) {
+                        actionEl.checked = !actionEl.checked;
+                    }
+                });
+            }
         } else {
+            // In reading mode, clicking opens the reader
             if (book.current_chapter_url === ch.url) {
                 li.classList.add('active');
             }
-            li.innerText = `${index + 1}. ${ch.title}`;
             li.addEventListener('click', () => {
                 showReaderView(bookId, ch.url);
             });

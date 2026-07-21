@@ -59,6 +59,25 @@ class ProgressRequest(BaseModel):
 @app.post("/api/books")
 def add_book(req: BookRequest):
     url = req.main_url
+    
+    # Prevent duplicates
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT id, title, cover_url, current_chapter_url, chapters_json, downloaded_count, total_chapters FROM books WHERE main_url=?", (url,))
+    row = c.fetchone()
+    conn.close()
+    
+    if row:
+        return {
+            "id": row[0],
+            "title": row[1],
+            "cover_url": row[2],
+            "current_chapter_url": row[3],
+            "downloaded_count": row[5],
+            "total_chapters": row[6],
+            "chapters": json.loads(row[4] if row[4] else "[]")
+        }
+        
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     }
@@ -194,17 +213,25 @@ def get_books():
     c = conn.cursor()
     c.execute("SELECT id, title, cover_url, main_url, current_chapter_url, chapters_json, downloaded_count, total_chapters FROM books")
     rows = c.fetchall()
+    
+    c.execute("SELECT url FROM chapters")
+    downloaded_urls = set(row[0] for row in c.fetchall())
+    
     conn.close()
     
     books = []
     for r in rows:
+        chapters = json.loads(r[5] if r[5] else "[]")
+        for ch in chapters:
+            ch['downloaded'] = ch['url'] in downloaded_urls
+            
         books.append({
             "id": r[0], 
             "title": r[1], 
             "cover_url": r[2], 
             "main_url": r[3], 
             "current_chapter_url": r[4],
-            "chapters": json.loads(r[5] if r[5] else "[]"),
+            "chapters": chapters,
             "downloaded_count": r[6],
             "total_chapters": r[7]
         })
