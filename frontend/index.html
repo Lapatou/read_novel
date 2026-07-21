@@ -48,12 +48,23 @@
                     <h1 id="details-title" style="font-size: 1.5rem; margin-bottom: 0.5rem; line-height: 1.3;">Book Title</h1>
                     <div id="details-progress" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Downloaded: 0 / 0</div>
                     <button id="continue-reading-btn" class="primary-btn" style="width: 100%; padding: 0.8rem; font-size: 1.05rem;">Continue Reading</button>
-                    <button id="download-offline-btn" class="secondary-btn" style="width: 100%; padding: 0.8rem; font-size: 1.05rem; margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 8px;">📥 Çevrimdışı İndir</button>
-                    <div id="offline-progress" style="display: none; margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem; text-align: center;">İndiriliyor... %0</div>
                 </div>
             </header>
 
-            <h3 style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border);">Chapters</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border);">
+                <h3 style="margin: 0;">Chapters</h3>
+                <button id="enable-offline-select-btn" class="secondary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">📥 Çevrimdışı İndir</button>
+            </div>
+            
+            <div id="offline-actions" class="hidden" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(99,102,241,0.1); padding: 10px; border-radius: 8px;">
+                <div>
+                    <button id="offline-select-all-btn" class="secondary-btn" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-right: 5px;">Tümünü Seç</button>
+                    <button id="offline-cancel-btn" class="secondary-btn" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">İptal</button>
+                </div>
+                <button id="offline-confirm-btn" class="primary-btn" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">Seçilenleri İndir</button>
+            </div>
+            <div id="offline-progress" style="display: none; margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem; text-align: center;">İndiriliyor... %0</div>
+
             <div id="chapter-list-container" style="flex: 1; overflow-y: auto;">
                 <ul id="chapter-list" class="chapter-list">
                     <!-- Chapters populated dynamically -->
@@ -145,6 +156,6 @@
             </footer>
         </div>
     </div>
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=13"></script>
 </body>
 </html>
