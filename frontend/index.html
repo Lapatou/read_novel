@@ -56,14 +56,14 @@
                 <button id="enable-offline-select-btn" class="secondary-btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">📥 Çevrimdışı İndir</button>
             </div>
             
-            <div id="offline-actions" class="hidden" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(99,102,241,0.1); padding: 10px; border-radius: 8px;">
+            <div id="offline-actions" class="hidden" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(99,102,241,0.1); padding: 10px; border-radius: 8px;">
                 <div>
                     <button id="offline-select-all-btn" class="secondary-btn" style="padding: 0.4rem 0.6rem; font-size: 0.85rem; margin-right: 5px;">Tümünü Seç</button>
                     <button id="offline-cancel-btn" class="secondary-btn" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">İptal</button>
                 </div>
                 <button id="offline-confirm-btn" class="primary-btn" style="padding: 0.4rem 0.6rem; font-size: 0.85rem;">Seçilenleri İndir</button>
             </div>
-            <div id="offline-progress" style="display: none; margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem; text-align: center;">İndiriliyor... %0</div>
+            <div id="offline-progress" class="hidden" style="display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 0.9rem; text-align: center;">İndiriliyor... %0</div>
 
             <div id="chapter-list-container" style="flex: 1; overflow-y: auto;">
                 <ul id="chapter-list" class="chapter-list">
@@ -156,6 +156,6 @@
             </footer>
         </div>
     </div>
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>

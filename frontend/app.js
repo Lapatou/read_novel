@@ -44,16 +44,50 @@ function showDetailsView(bookId) {
     const chapterList = document.getElementById('chapter-list');
     chapterList.innerHTML = '';
     
+    const isOfflineMode = document.getElementById('offline-actions') && document.getElementById('offline-actions').style.display === 'flex';
+
     book.chapters.forEach((ch, index) => {
         const li = document.createElement('li');
         li.className = 'chapter-item';
-        if (book.current_chapter_url === ch.url) {
-            li.classList.add('active');
+        
+        if (isOfflineMode) {
+            li.style.display = 'flex';
+            li.style.alignItems = 'center';
+            li.style.gap = '10px';
+            li.style.padding = '10px';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'offline-checkbox';
+            checkbox.dataset.url = ch.url;
+            checkbox.style.width = '18px';
+            checkbox.style.height = '18px';
+            checkbox.style.cursor = 'pointer';
+            
+            const label = document.createElement('span');
+            label.innerText = `${index + 1}. ${ch.title}`;
+            label.style.flex = '1';
+            label.style.cursor = 'pointer';
+            
+            li.appendChild(checkbox);
+            li.appendChild(label);
+            
+            // Clicking the row checks the box in offline mode
+            li.addEventListener('click', (e) => {
+                if (e.target !== checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                }
+            });
+        } else {
+            if (book.current_chapter_url === ch.url) {
+                li.classList.add('active');
+            }
+            li.innerText = `${index + 1}. ${ch.title}`;
+            li.addEventListener('click', () => {
+                showReaderView(bookId, ch.url);
+            });
         }
-        li.innerText = `${index + 1}. ${ch.title}`;
-        li.addEventListener('click', () => {
-            showReaderView(bookId, ch.url);
-        });
+        
         chapterList.appendChild(li);
     });
     
@@ -729,34 +763,51 @@ if ('serviceWorker' in navigator) {
 }
 
 // --- Offline Download Logic ---
-const downloadOfflineBtn = document.getElementById('download-offline-btn');
+const enableOfflineBtn = document.getElementById('enable-offline-select-btn');
+const offlineActions = document.getElementById('offline-actions');
+const offlineSelectAll = document.getElementById('offline-select-all-btn');
+const offlineCancel = document.getElementById('offline-cancel-btn');
+const offlineConfirm = document.getElementById('offline-confirm-btn');
 const offlineProgress = document.getElementById('offline-progress');
 
-if (downloadOfflineBtn) {
-    downloadOfflineBtn.addEventListener('click', async () => {
-        if (!activeBookId) return;
-        const book = booksData.find(b => b.id === activeBookId);
-        if (!book) return;
+if (enableOfflineBtn) {
+    enableOfflineBtn.addEventListener('click', () => {
+        enableOfflineBtn.classList.add('hidden');
+        offlineActions.classList.remove('hidden');
+        showBookDetails(activeBookId); // Re-render list with checkboxes
+    });
+    
+    offlineCancel.addEventListener('click', () => {
+        offlineActions.classList.add('hidden');
+        enableOfflineBtn.classList.remove('hidden');
+        showBookDetails(activeBookId); // Re-render list without checkboxes
+    });
+    
+    offlineSelectAll.addEventListener('click', () => {
+        const checkboxes = document.querySelectorAll('.offline-checkbox');
+        const allChecked = Array.from(checkboxes).every(c => c.checked);
+        checkboxes.forEach(c => c.checked = !allChecked);
+        offlineSelectAll.innerText = allChecked ? "Tümünü Seç" : "Hiçbirini Seçme";
+    });
+    
+    offlineConfirm.addEventListener('click', async () => {
+        const checkboxes = document.querySelectorAll('.offline-checkbox:checked');
+        if (checkboxes.length === 0) return;
         
-        downloadOfflineBtn.style.display = 'none';
-        offlineProgress.style.display = 'block';
+        offlineActions.classList.add('hidden');
+        offlineProgress.classList.remove('hidden');
         
-        const chapters = book.chapters;
-        let downloaded = 0;
+        let count = 0;
         
-        for (let i = 0; i < chapters.length; i++) {
-            const ch = chapters[i];
-            offlineProgress.innerText = `İndiriliyor... ${i + 1} / ${chapters.length} (${Math.round(((i + 1) / chapters.length) * 100)}%)`;
+        for (const box of checkboxes) {
+            count++;
+            const url = box.dataset.url;
+            offlineProgress.innerText = `İndiriliyor... ${count} / ${checkboxes.length} (${Math.round((count / checkboxes.length) * 100)}%)`;
             
             try {
-                // 1. Fetch chapter data (will be cached by service worker)
-                const chRes = await fetch(`/api/chapter?url=${encodeURIComponent(ch.url)}`);
+                const chRes = await fetch(`/api/chapter?url=${encodeURIComponent(url)}`);
                 if (chRes.ok) {
                     const chData = await chRes.json();
-                    
-                    // 2. Fetch TTS Prepare (POST is not cached, but that's fine for offline read-only. 
-                    // To cache TTS, we'd need complex IndexedDB caching. For now, text is cached offline.)
-                    // We also trigger it to cache the VTT.
                     const prepareRes = await fetch('/api/tts/prepare', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -765,22 +816,19 @@ if (downloadOfflineBtn) {
                     
                     if (prepareRes.ok) {
                         const prepareData = await prepareRes.json();
-                        const sessionId = prepareData.session_id;
-                        
-                        // 3. Fetch VTT
-                        await fetch(`/api/tts/vtt?id=${sessionId}`);
-                        // MP3 Audio stream isn't easily cached by standard Service Worker strategies.
+                        await fetch(`/api/tts/vtt?id=${prepareData.session_id}`);
                     }
                 }
             } catch (e) {
-                console.error("Offline download error for chapter:", ch.title, e);
+                console.error("Offline download error:", e);
             }
         }
         
-        offlineProgress.innerText = "İndirme Tamamlandı! (Metinler Çevrimdışı okunabilir)";
+        offlineProgress.innerText = "İndirme Tamamlandı! (Seçilen metinler çevrimdışı okunabilir)";
         setTimeout(() => {
-            offlineProgress.style.display = 'none';
-            downloadOfflineBtn.style.display = 'flex';
-        }, 5000);
+            offlineProgress.classList.add('hidden');
+            enableOfflineBtn.classList.remove('hidden');
+            showBookDetails(activeBookId); // reset view
+        }, 3000);
     });
 }
